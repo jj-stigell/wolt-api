@@ -40,6 +40,7 @@ as a timezone in backend solutions (so Friday rush is 3 - 7 PM UTC).
 '''
 
 
+
 def calculate_delivery_fee(order: Order):
     # Free delivery for high cart value
     if order.cart_value >= constants.FREE_DELIVERY_THRESHOLD:
