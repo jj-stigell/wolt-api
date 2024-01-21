@@ -1,7 +1,7 @@
 # Wolt Delivery Fee Calculator API
 
 ## Introduction
-HTTP API for calculating the delivery fee. Single POST endpoint which calculates the
+HTTP API for calculating the delivery fee. Single POST endpoint (http://localhost:8000/feecalc) which calculates the
 delivery fee based on the information in the request payload (JSON) and includes the
 calculated delivery fee in the response payload (JSON).
 
@@ -25,6 +25,14 @@ Rules for calculating a delivery fee
 
 ## Run application
 
+All commands are run in the project root.
+
+### Run in container
+
+Run in docker container with command:
+```commandline
+docker-compose up
+```
 
 ### Run locally
 
@@ -37,6 +45,8 @@ Run app with command:
 ```commandline
 uvicorn app.main:app --reload
 ```
+
+### Access
 
 App runs in address: http://localhost:8000
 

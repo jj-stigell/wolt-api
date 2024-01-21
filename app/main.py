@@ -1,7 +1,7 @@
 from fastapi import Body
 
 from app import constants
-from app.api import app
+from app.server import app
 from app.constants import CALCULATE_ENDPOINT
 from app.order import Order
 

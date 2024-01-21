@@ -49,12 +49,12 @@ class Order(BaseModel):
 
     def calculate_small_order_surcharge_fee(self) -> int:
         """
-        Calculates (possible) the surcharge fee for small orders.
+        Calculates the surcharge fee for small orders, if applicable.
         A surcharge is applied if the cart value is below a certain threshold (constant SMALL_ORDER_THRESHOLD).
         The surcharge is the difference between the cart value and SMALL_ORDER_THRESHOLD.
 
-        For example if SMALL_ORDER_THRESHOLD is 1_000 (in euro cents) and cart value is 890 (in euro cents).
-        The surcharge will be SMALL_ORDER_THRESHOLD - cart value = 1_000 - 890 = 110 (1.10€).
+        For example if SMALL_ORDER_THRESHOLD is 1000 and cart value is 890.
+        The surcharge will be SMALL_ORDER_THRESHOLD - cart value = 1000 - 890 = 110 (1.10€).
         """
         if self.cart_value < constants.SMALL_ORDER_THRESHOLD:
             return constants.SMALL_ORDER_THRESHOLD - self.cart_value
@@ -63,7 +63,7 @@ class Order(BaseModel):
 
     def calculate_bulk_fee(self) -> int:
         """
-        Larger order have an extra bulk fee included in them. Bulk fee applies if order has more items than the set
+        Larger orders have an extra bulk fee included in them. Bulk fee applies if order has more items than the set
         threshold, defined by constant BULK_FEE_THRESHOLD. Bulk fee value is defined in BULK_FEE constant.
 
         For example if BULK_FEE_THRESHOLD is 10 and order has 10 items, the bulk fee is NOT CHARGED.
@@ -96,8 +96,6 @@ class Order(BaseModel):
         For example, if rush hours time applies, current fee is = 100, and RUSH_MULTIPLIER = 1.2.
         Then the current delivery fee is multiplied 1.2 * 100 = 120.
         """
-        fee = fee
-
         if (self.time.weekday() == constants.RUSH_DELIVERY_DAY and
                 time(constants.RUSH_DELIVERY_START, 0) <= self.time.time() <= time(constants.RUSH_DELIVERY_END, 0)):
             fee *= constants.RUSH_MULTIPLIER
@@ -107,8 +105,14 @@ class Order(BaseModel):
     def calculate_delivery_fee(self) -> int:
         """
         Calculates the total delivery fee for the order.
-        Considers distance fees, item count surcharges, bulk fees, rush hour fees, and small order surcharges.
         Maximum limit is set for the delivery fee (constant MAX_FEE), higher fees will not be charged.
+
+        Calculates and sums different fees in the following order:
+            1. distance fees
+            2. item count surcharges
+            3. small order surcharges
+            4. bulk fees
+            5. rush hour fees
         """
         fee = 0
         if self.free_delivery():

@@ -4,8 +4,6 @@ from app.order import Order
 from app import constants
 
 not_rush_hour_date = datetime(2024, 1, 20, 12)
-rush_hour_date_wrong_time = datetime(2024, 1, 19, constants.RUSH_DELIVERY_START - 1)
-rush_hour_date_and_time = datetime(2024, 1, 19, constants.RUSH_DELIVERY_START)
 
 
 def test_free_delivery():
@@ -16,20 +14,20 @@ def test_free_delivery():
         time=not_rush_hour_date
     )
 
-    assert order.calculate_bulk_fee() == 0.0
+    assert order.calculate_bulk_fee() == 0
     assert order.free_delivery() is True
-    assert order.calculate_delivery_fee() == 0.0
+    assert order.calculate_delivery_fee() == 0
 
     order = Order(
-        cart_value=constants.FREE_DELIVERY_THRESHOLD - 100,
+        cart_value=constants.FREE_DELIVERY_THRESHOLD - 1,
         number_of_items=max(constants.ADDITIONAL_ITEM_LIMIT - 1, 1),
         delivery_distance=constants.BASE_DELIVERY_FEE_DISTANCE,
         time=not_rush_hour_date
     )
 
-    assert order.calculate_bulk_fee() == 0.0
+    assert order.calculate_bulk_fee() == 0
     assert order.free_delivery() is False
-    assert order.calculate_delivery_fee() != 0.0
+    assert order.calculate_delivery_fee() != 0
 
 
 def test_maximum_delivery_fee_cap():
@@ -52,7 +50,7 @@ def test_maximum_delivery_fee_cap():
     )
 
     assert order.calculate_delivery_fee() == constants.MAX_FEE
-    assert order.calculate_bulk_fee() == 0.0
+    assert order.calculate_bulk_fee() == 0
     assert order.free_delivery() is False
 
 
@@ -66,12 +64,12 @@ def test_no_small_order_surcharge():
     expected_fee = constants.BASE_DELIVERY_FEE
 
     assert order.calculate_delivery_fee() == expected_fee
-    assert order.calculate_small_order_surcharge_fee() == 0.0
-    assert order.calculate_bulk_fee() == 0.0
+    assert order.calculate_small_order_surcharge_fee() == 0
+    assert order.calculate_bulk_fee() == 0
     assert order.free_delivery() is False
 
     order = Order(
-        cart_value=constants.SMALL_ORDER_THRESHOLD + 100,
+        cart_value=constants.SMALL_ORDER_THRESHOLD + 1,
         number_of_items=max(constants.ADDITIONAL_ITEM_LIMIT - 1, 1),
         delivery_distance=constants.BASE_DELIVERY_FEE_DISTANCE,
         time=not_rush_hour_date
@@ -79,8 +77,8 @@ def test_no_small_order_surcharge():
     expected_fee = constants.BASE_DELIVERY_FEE
 
     assert order.calculate_delivery_fee() == expected_fee
-    assert order.calculate_small_order_surcharge_fee() == 0.0
-    assert order.calculate_bulk_fee() == 0.0
+    assert order.calculate_small_order_surcharge_fee() == 0
+    assert order.calculate_bulk_fee() == 0
     assert order.free_delivery() is False
 
 
@@ -95,7 +93,7 @@ def test_small_order_surcharge():
 
     assert order.calculate_delivery_fee() == expected_fee
     assert order.calculate_small_order_surcharge_fee() == 1.0
-    assert order.calculate_bulk_fee() == 0.0
+    assert order.calculate_bulk_fee() == 0
     assert order.free_delivery() is False
 
 
@@ -109,7 +107,7 @@ def test_base_delivery_fee_distance_not_exceed():
 
     assert order.calculate_delivery_fee() == constants.BASE_DELIVERY_FEE
     assert order.calculate_distance_fee() == constants.BASE_DELIVERY_FEE
-    assert order.calculate_bulk_fee() == 0.0
+    assert order.calculate_bulk_fee() == 0
     assert order.free_delivery() is False
 
     order = Order(
@@ -121,7 +119,7 @@ def test_base_delivery_fee_distance_not_exceed():
 
     assert order.calculate_delivery_fee() == constants.BASE_DELIVERY_FEE
     assert order.calculate_distance_fee() == constants.BASE_DELIVERY_FEE
-    assert order.calculate_bulk_fee() == 0.0
+    assert order.calculate_bulk_fee() == 0
     assert order.free_delivery() is False
 
     order = Order(
@@ -133,7 +131,7 @@ def test_base_delivery_fee_distance_not_exceed():
 
     assert order.calculate_delivery_fee() > constants.BASE_DELIVERY_FEE
     assert order.calculate_distance_fee() == constants.BASE_DELIVERY_FEE + constants.ADDITIONAL_FEE
-    assert order.calculate_bulk_fee() == 0.0
+    assert order.calculate_bulk_fee() == 0
     assert order.free_delivery() is False
 
 
@@ -148,7 +146,7 @@ def test_base_delivery_fee_distance_exceeded():
 
     assert order.calculate_delivery_fee() == expected_fee
     assert order.calculate_distance_fee() == expected_fee
-    assert order.calculate_bulk_fee() == 0.0
+    assert order.calculate_bulk_fee() == 0
     assert order.free_delivery() is False
 
     order = Order(
@@ -161,7 +159,7 @@ def test_base_delivery_fee_distance_exceeded():
 
     assert order.calculate_delivery_fee() == expected_fee
     assert order.calculate_distance_fee() == expected_fee
-    assert order.calculate_bulk_fee() == 0.0
+    assert order.calculate_bulk_fee() == 0
     assert order.free_delivery() is False
 
     # Multiples of additional fee
@@ -175,7 +173,7 @@ def test_base_delivery_fee_distance_exceeded():
 
     assert order.calculate_delivery_fee() == expected_fee
     assert order.calculate_distance_fee() == expected_fee
-    assert order.calculate_bulk_fee() == 0.0
+    assert order.calculate_bulk_fee() == 0
     assert order.free_delivery() is False
 
 
@@ -196,17 +194,30 @@ def test_bulk_fee_and_item_count_over_surcharge_limit():
 
 
 def test_rush_hour_multiplier():
-    # Date and time in rush hour
+    # Date and time in rush hour, when rush hour time starts
     order = Order(
         cart_value=constants.SMALL_ORDER_THRESHOLD,
         number_of_items=max(constants.ADDITIONAL_ITEM_LIMIT - 1, 1),
         delivery_distance=constants.BASE_DELIVERY_FEE_DISTANCE,
-        time=rush_hour_date_and_time
+        time=datetime(2024, 1, 19, constants.RUSH_DELIVERY_START)
     )
     expected_fee = constants.BASE_DELIVERY_FEE * constants.RUSH_MULTIPLIER
 
     assert order.calculate_delivery_fee() == expected_fee
-    assert order.calculate_bulk_fee() == 0.0
+    assert order.calculate_bulk_fee() == 0
+    assert order.free_delivery() is False
+
+    # Date and time in rush hour, when rush hour time ends
+    order = Order(
+        cart_value=constants.SMALL_ORDER_THRESHOLD,
+        number_of_items=max(constants.ADDITIONAL_ITEM_LIMIT - 1, 1),
+        delivery_distance=constants.BASE_DELIVERY_FEE_DISTANCE,
+        time=datetime(2024, 1, 19, constants.RUSH_DELIVERY_END)
+    )
+    expected_fee = constants.BASE_DELIVERY_FEE * constants.RUSH_MULTIPLIER
+
+    assert order.calculate_delivery_fee() == expected_fee
+    assert order.calculate_bulk_fee() == 0
     assert order.free_delivery() is False
 
     # Rush hour date but not time
@@ -214,11 +225,11 @@ def test_rush_hour_multiplier():
         cart_value=constants.SMALL_ORDER_THRESHOLD,
         number_of_items=max(constants.ADDITIONAL_ITEM_LIMIT - 1, 1),
         delivery_distance=constants.BASE_DELIVERY_FEE_DISTANCE,
-        time=rush_hour_date_wrong_time
+        time=datetime(2024, 1, 19, constants.RUSH_DELIVERY_START - 1)
     )
 
     assert order.calculate_delivery_fee() == constants.BASE_DELIVERY_FEE
-    assert order.calculate_bulk_fee() == 0.0
+    assert order.calculate_bulk_fee() == 0
     assert order.free_delivery() is False
 
     # Max delivery fee should work despite rush hour
@@ -226,7 +237,7 @@ def test_rush_hour_multiplier():
         cart_value=constants.SMALL_ORDER_THRESHOLD,
         number_of_items=(constants.MAX_FEE / constants.ADDITIONAL_ITEM_SURCHARGE) + constants.ADDITIONAL_ITEM_LIMIT,
         delivery_distance=constants.BASE_DELIVERY_FEE_DISTANCE,
-        time=rush_hour_date_and_time
+        time=datetime(2024, 1, 19, constants.RUSH_DELIVERY_START)
     )
 
     assert order.calculate_delivery_fee() == constants.MAX_FEE
