@@ -9,36 +9,36 @@ client = TestClient(app)
 def test_calculate_fee_endpoint():
     # Correct fee
     response = client.post(
-        constants.calculate_endpoint,
+        constants.CALCULATE_ENDPOINT,
         json={
-            "cart_value": 10,
-            "delivery_distance": 1,
-            "number_of_items": 1,
+            "cart_value": constants.SMALL_ORDER_THRESHOLD,
+            "delivery_distance": constants.BASE_DELIVERY_FEE_DISTANCE,
+            "number_of_items": max(constants.ADDITIONAL_ITEM_LIMIT - 1, 0),
             "time": "2024-01-15T13:00:00Z"
         },
     )
     assert response.status_code == 200
-    assert response.json() == {"delivery_fee": 2.0}
+    assert response.json() == {"delivery_fee": constants.BASE_DELIVERY_FEE}
 
     # Free delivery
     response = client.post(
-        constants.calculate_endpoint,
+        constants.CALCULATE_ENDPOINT,
         json={
             "cart_value": constants.FREE_DELIVERY_THRESHOLD,
-            "delivery_distance": 1,
-            "number_of_items": 1,
+            "delivery_distance": constants.BASE_DELIVERY_FEE_DISTANCE,
+            "number_of_items": max(constants.ADDITIONAL_ITEM_LIMIT - 1, 0),
             "time": "2024-01-15T13:00:00Z"
         },
     )
     assert response.status_code == 200
-    assert response.json() == {"delivery_fee": 0.0}
+    assert response.json() == {"delivery_fee": 0}
 
     # Max delivery fee reached
     response = client.post(
-        constants.calculate_endpoint,
+        constants.CALCULATE_ENDPOINT,
         json={
-            "cart_value": 1,
-            "delivery_distance": 1,
+            "cart_value": constants.SMALL_ORDER_THRESHOLD,
+            "delivery_distance": constants.BASE_DELIVERY_FEE_DISTANCE,
             "number_of_items": (constants.MAX_FEE / constants.ADDITIONAL_ITEM_SURCHARGE) + constants.ADDITIONAL_ITEM_LIMIT,
             "time": "2024-01-15T13:00:00Z"
         },
@@ -46,11 +46,22 @@ def test_calculate_fee_endpoint():
     assert response.status_code == 200
     assert response.json() == {"delivery_fee": constants.MAX_FEE}
 
-
-def test_calculate_fee_endpoint_errors():
-    # Invalid field
+    # Assignment example data
     response = client.post(
-        constants.calculate_endpoint,
+        constants.CALCULATE_ENDPOINT,
+        json={
+            "cart_value": 790,
+            "delivery_distance": 2235,
+            "number_of_items": 4,
+            "time": "2024-01-15T13:00:00Z"
+        },
+    )
+    assert response.status_code == 200
+    assert response.json() == {"delivery_fee": 710}
+
+    # Invalid/missing field in request body
+    response = client.post(
+        constants.CALCULATE_ENDPOINT,
         json={
             "cart_valu": 10,
             "delivery_distance": 1,
@@ -81,7 +92,7 @@ def test_calculate_fee_endpoint_errors():
 
     # Invalid type on field
     response = client.post(
-        constants.calculate_endpoint,
+        constants.CALCULATE_ENDPOINT,
         json={
             "cart_value": "not valid type",
             "delivery_distance": 1,

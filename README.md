@@ -23,9 +23,22 @@ Rules for calculating a delivery fee
 * During the Friday rush, 3 - 7 PM, the delivery fee (the total fee including possible surcharges) will be multiplied by 1.2x. However, the fee still cannot be more than the max (15€). Considering timezone, for simplicity, **use UTC as a timezone in backend solutions** (so Friday rush is 3 - 7 PM UTC). **In frontend solutions, use the timezone of the browser** (so Friday rush is 3 - 7 PM in the timezone of the browser).
 
 
+## Run application
+
+Run app with command:
+```
+$ uvicorn app.main:app --reload
+```
+
+App runs in address: http://localhost:8000
+
+API documentation available at: http://localhost:8000/docs
+
 ### Request
 
-Example: 
+Make POST request to endpoint: http://localhost:8000/feecalc
+
+Example request body: 
 ```json
 {
   "cart_value": 790,
@@ -46,7 +59,7 @@ Example:
 
 ### Response
 
-Example:
+Example response:
 ```json
 {
   "delivery_fee": 710
@@ -59,13 +72,6 @@ Example:
 |:---           |:---   |:---                                   |:---                       |
 |delivery_fee   |Integer|Calculated delivery fee __in cents__.  |__710__ (710 cents = 7.10€)|
 
-
-## Run application
-
-Run app with command:
-```
-$ uvicorn app.main:app --reload
-```
 
 ## Run tests
 
