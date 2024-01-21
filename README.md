@@ -25,9 +25,17 @@ Rules for calculating a delivery fee
 
 ## Run application
 
-Run app with command:
+
+### Run locally
+
+Install packages with command:
+```commandline
+pip install -r requirements.txt
 ```
-$ uvicorn app.main:app --reload
+
+Run app with command:
+```commandline
+uvicorn app.main:app --reload
 ```
 
 App runs in address: http://localhost:8000
@@ -76,6 +84,6 @@ Example response:
 ## Run tests
 
 Run tests with command:
-```
-$ pytest --no-header -v
+```commandline
+pytest --no-header -v
 ```
