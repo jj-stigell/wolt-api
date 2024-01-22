@@ -48,6 +48,11 @@ Run app with command:
 uvicorn app.main:app --reload
 ```
 
+Run tests with command:
+```commandline
+pytest --no-header -v
+```
+
 ### Access
 
 App runs in address: http://localhost:8000
@@ -91,11 +96,3 @@ Example response:
 | Field         | Type  | Description                           | Example value             |
 |:---           |:---   |:---                                   |:---                       |
 |delivery_fee   |Integer|Calculated delivery fee __in cents__.  |__710__ (710 cents = 7.10€)|
-
-
-## Run tests
-
-Run tests with command:
-```commandline
-pytest --no-header -v
-```
