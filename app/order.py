@@ -23,6 +23,8 @@ class Order(BaseModel):
 
         For example with FREE_DELIVERY_THRESHOLD = 20_000, orders with value 200€ (20 000 in cents) and above
         qualify for free delivery, order with value 199.99€ (19 999 in cents) or lower will not qualify for free delivery.
+
+        :return: True if delivery is free, False if not
         """
         return self.cart_value >= constants.FREE_DELIVERY_THRESHOLD
 
@@ -37,6 +39,8 @@ class Order(BaseModel):
             * If the delivery distance is 1499 meters, the delivery fee is: 200 base fee + 100 for the additional 500 m => 300
             * If the delivery distance is 1500 meters, the delivery fee is: 200 base fee + 100 for the additional 500 m => 300
             * If the delivery distance is 1501 meters, the delivery fee is: 200 base fee + 100 for the first 500 m + 100 for the second 500 m => 400
+
+        :return: Distance fee based on the delivery distance
         """
         fee = constants.BASE_DELIVERY_FEE
 
@@ -55,6 +59,8 @@ class Order(BaseModel):
 
         For example if SMALL_ORDER_THRESHOLD is 1000 and cart value is 890.
         The surcharge will be SMALL_ORDER_THRESHOLD - cart value = 1000 - 890 = 110 (1.10€).
+
+        :return: Small order surcharge if applicable
         """
         if self.cart_value < constants.SMALL_ORDER_THRESHOLD:
             return constants.SMALL_ORDER_THRESHOLD - self.cart_value
@@ -68,6 +74,8 @@ class Order(BaseModel):
 
         For example if BULK_FEE_THRESHOLD is 10 and order has 10 items, the bulk fee is NOT CHARGED.
         If the amount of items is 11, the bulk fee IS CHARGED.
+
+        :return: Bulk fee if applicable
         """
         if self.number_of_items > constants.BULK_FEE_THRESHOLD:
             return constants.BULK_FEE
@@ -81,6 +89,8 @@ class Order(BaseModel):
 
         For example if ADDITIONAL_ITEM_LIMIT is 5, ADDITIONAL_ITEM_SURCHARGE is 50 and order has 6 items, then an additional
         surcharge of 100 (2 * 50) is returned. The fee is added for each item above and including the fifth item.
+
+        :return: Surcharge fee if applicable
         """
         if self.number_of_items >= constants.ADDITIONAL_ITEM_LIMIT:
             extra_items = self.number_of_items - constants.ADDITIONAL_ITEM_LIMIT + 1
@@ -95,9 +105,14 @@ class Order(BaseModel):
 
         For example, if rush hours time applies, current fee is = 100, and RUSH_MULTIPLIER = 1.2.
         Then the current delivery fee is multiplied 1.2 * 100 = 120.
+
+        :return: Original delivery fee multiplied with rush hour multiplier if applicable
         """
-        if (self.time.weekday() == constants.RUSH_DELIVERY_DAY and
-                time(constants.RUSH_DELIVERY_START, 0) <= self.time.time() <= time(constants.RUSH_DELIVERY_END, 0)):
+        is_rush_hour_day: bool = self.time.weekday() == constants.RUSH_DELIVERY_DAY
+        is_within_rush_hours: bool = time(constants.RUSH_DELIVERY_START, 0) <= self.time.time() <= time(
+            constants.RUSH_DELIVERY_END, 0)
+
+        if is_rush_hour_day and is_within_rush_hours:
             fee *= constants.RUSH_MULTIPLIER
 
         return fee
@@ -113,8 +128,11 @@ class Order(BaseModel):
             3. small order surcharges
             4. bulk fees
             5. rush hour fees
+
+        :return: Total fee for the delivery, in cents
         """
         fee = 0
+
         if self.free_delivery():
             return fee
 

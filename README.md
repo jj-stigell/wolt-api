@@ -27,6 +27,8 @@ Rules for calculating a delivery fee
 
 All commands are run in the project root.
 
+Application settings can be adjusted from the ```app/constants.py``` file.
+
 ### Run in container
 
 Run in docker container with command:
